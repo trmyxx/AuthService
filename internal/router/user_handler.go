@@ -3,19 +3,25 @@ package router
 import (
 	"net/http"
 
-	"github.com/trmyxx/auth/model"
-
 	"github.com/gin-gonic/gin"
 )
 
 func (router *Router) postUser(c *gin.Context) {
-	var user model.User
-	if err := c.ShouldBind(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	//Get email/pass off req body
+	var body struct {
+		Email    string
+		Password string
+	}
+
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read body",
+		})
+
 		return
 	}
 
-	savedUser, err := router.service.AddUser(user)
+	savedUser, err := router.service.Signup(body)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}

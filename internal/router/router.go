@@ -1,6 +1,9 @@
 package router
 
 import (
+	"github.com/trmyxx/AuthService/internal/service"
+	"github.com/trmyxx/AuthService/internal/storage"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,22 +22,9 @@ func NewRouter(storage storage.Storage, service service.Service) *Router {
 func (router *Router) SetupRouter() *gin.Engine {
 	r := gin.Default()
 
-	api := r.Group("/api/v1")
-
-	// публичные роуты
-	auth := api.Group("/auth")
-	{
-		auth.POST("/login", router.login)
-		auth.POST("/register", router.register)
-	}
-
-	// защищённые роуты
-	protected := api.Group("/")
-	protected.Use(middleware.AuthMiddleware())
-	{
-		protected.GET("/profile", router.profile)
-		// protected.POST("/books", ...)
-	}
+	// r.POST("/api/v1/signup", controllers.Signup)
+	// r.POST("api/v1/login", controllers.Login)
+	// r.GET("/api/v1/validate", middleware.RequireAuth, controllers.Validate)
 
 	return r
 }

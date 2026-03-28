@@ -1,11 +1,19 @@
 package main
 
 import (
-	"Auth/internal/router"
-	"Auth/internal/service"
-	"Auth/internal/storage"
 	"log"
+
+	"github.com/trmyxx/AuthService/initializers"
+	"github.com/trmyxx/AuthService/internal/router"
+	"github.com/trmyxx/AuthService/internal/service"
+	"github.com/trmyxx/AuthService/internal/storage"
 )
+
+func init() {
+	initializers.LoadEnvVariables()
+	initializers.ConnectToDB()
+	initializers.SyncDataBase()
+}
 
 func main() {
 
