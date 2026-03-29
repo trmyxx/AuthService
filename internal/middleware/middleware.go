@@ -1,41 +1,59 @@
 package middleware
 
 import (
-	"errors"
+	"fmt"
+	"log"
 	"net/http"
-	"strings"
+	"os"
+	"time"
+
+	"github.com/trmyxx/AuthService/initializers"
+	"github.com/trmyxx/AuthService/internal/model"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		token := c.GetHeader("Authorization")
+func RequireAuth(c *gin.Context) {
+	fmt.Println("In middleware")
+	//Get the cookie off req
+	tokenString, err := c.Cookie("Autorization")
 
-		if token == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "token is empty"})
-			return
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+	}
+
+	//Decode/validate it
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+		return []byte(os.Getenv("SECRET")), nil
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		//Check the exp
+		if float64(time.Now().Unix()) > claims["exp"].(float64) {
+			c.AbortWithStatus(http.StatusUnauthorized)
 		}
 
-		// тут проверка JWT
-		userID, err := validateToken(token)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-			return
+		//Find the user with token sub
+		var user model.User
+		initializers.DB.First(&user, claims["sub"])
+
+		if user.ID == 0 {
+			c.AbortWithStatus(http.StatusUnauthorized)
 		}
 
-		// кладём данные в контекст
-		c.Set("user_id", userID)
+		//Attach to req
+		c.Set("user", user)
+
+		//Continue
 
 		c.Next()
-	}
-}
 
-func validateToken(token string) (string, error) {
-	auths := strings.Split(token, " ")
-	if len(auths) == 2 && auths[0] == "Bearer" {
-		userID := auths[1]
-		return userID, nil
+		fmt.Println(claims["foo"], claims["nbf"])
+	} else {
+		c.AbortWithStatus(http.StatusUnauthorized)
 	}
-	return "", errors.New("invalid token")
 }

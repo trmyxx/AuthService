@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/trmyxx/AuthService/internal/middleware"
 	"github.com/trmyxx/AuthService/internal/service"
 	"github.com/trmyxx/AuthService/internal/storage"
 
@@ -22,9 +23,9 @@ func NewRouter(storage storage.Storage, service service.Service) *Router {
 func (router *Router) SetupRouter() *gin.Engine {
 	r := gin.Default()
 
-	// r.POST("/api/v1/signup", controllers.Signup)
-	// r.POST("api/v1/login", controllers.Login)
-	// r.GET("/api/v1/validate", middleware.RequireAuth, controllers.Validate)
+	r.POST("/api/v1/signup", router.Signup)
+	r.POST("api/v1/login", router.Login)
+	r.GET("/api/v1/validate", middleware.RequireAuth, router.Validate)
 
 	return r
 }

@@ -18,7 +18,7 @@ func init() {
 func main() {
 
 	storage := storage.NewStorage()
-	service := service.NewService()
+	service := service.NewService(*storage)
 
 	rest := router.NewRouter(*storage, *service)
 

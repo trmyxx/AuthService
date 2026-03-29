@@ -18,3 +18,9 @@ func (storage *Storage) AddUser(body model.User, hash string) *gorm.DB {
 	result := initializers.DB.Create(&user)
 	return result
 }
+
+func (storage *Storage) GetUser(body model.User) model.User {
+	var user model.User
+	initializers.DB.First(&user, "email = ?", body.Email)
+	return user
+}
